@@ -1,0 +1,935 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+<title> Chat - Chat</title>
+<style>
+
+/*
+Made by Roelde
+*/
+
+  
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+
+  body, html {
+    height: 100%;
+    font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: #f5f7fa;
+    color: #333;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    user-select: none;
+    transition: background 0.3s ease;
+  }
+
+  #app {
+    display: flex;
+    height: 100vh;
+    max-height: 600px;
+    max-width: 360px; 
+    margin: auto;
+    box-shadow: 0 0 20px rgba(0,0,0,0.15);
+    border-radius: 15px;
+    background: white;
+    overflow: hidden;
+    position: relative;
+    background-size: cover;
+    background-position: center center;
+    background-repeat: no-repeat;
+  }
+
+  
+  .sidebar {
+    width: 90px;
+    border-right: 1px solid #e6e8ec;
+    background: rgba(255,255,255,0.9);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 16px 8px;
+  }
+
+  .profile-avatar {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background: #4a90e2;
+    color: white;
+    font-weight: 700;
+    font-size: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    position: relative;
+    user-select: none;
+  }
+  .profile-avatar:hover {
+    box-shadow: 0 0 8px rgba(74,144,226,0.6);
+  }
+
+  .friend-status-dot {
+    position: absolute;
+    bottom: 6px;
+    right: 6px;
+    width: 12px;
+    height: 12px;
+    background: #34d859;
+    border: 2px solid white;
+    border-radius: 50%;
+    box-shadow: 0 0 6px #34d859;
+  }
+
+  .friend-name {
+    margin-top: 10px;
+    font-weight: 600;
+    font-size: 15px;
+    color: #555;
+    text-align: center;
+    user-select: text;
+  }
+
+  /* Main Chat Container */
+  .chat-container {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    background: rgba(255,255,255,0.95);
+    position: relative;
+  }
+
+  /* Chat Header */
+  .chat-header {
+    height: 64px;
+    background: #4a90e2;
+    color: white;
+    display: flex;
+    align-items: center;
+    padding: 0 20px;
+    font-weight: 700;
+    font-size: 20px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    user-select: none;
+  }
+
+  .chat-header .online-indicator {
+    width: 14px;
+    height: 14px;
+    background: #34d859;
+    border-radius: 50%;
+    margin-left: 10px;
+    box-shadow: 0 0 8px #34d859;
+  }
+
+  /*Area for messagees*/
+  .messages {
+    flex-grow: 1;
+    padding: 20px;
+    overflow-y: auto;
+    background: transparent;
+  }
+
+  .message {
+    max-width: 75%;
+    margin-bottom: 18px;
+    padding: 12px 18px;
+    border-radius: 20px;
+    font-size: 15px;
+    line-height: 1.4;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+    user-select: text;
+    word-break: break-word;
+    background: white;
+    color: #333;
+  }
+
+  /*own messages*/
+  .message.user {
+    margin-left: auto;
+    background: linear-gradient(135deg, #7cc1ff, #4588e8);
+    color: white;
+    border-bottom-right-radius: 4px;
+  }
+  /* Bot messages */
+  .message.bot {
+    margin-right: auto;
+  }
+
+  /* Typing indicator*/
+  .typing-indicator {
+    margin-left: 4px;
+    font-style: italic;
+    font-size: 14px;
+    color: #888;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 10px;
+    user-select: none;
+  }
+
+  .typing-dots {
+    display: inline-flex;
+    gap: 4px;
+  }
+
+  .typing-dots div {
+    width: 6px;
+    height: 6px;
+    background: #888;
+    border-radius: 50%;
+    animation: typingBounce 1.4s infinite;
+  }
+  .typing-dots div:nth-child(1) {
+    animation-delay: 0s;
+  }
+  .typing-dots div:nth-child(2) {
+    animation-delay: 0.2s;
+  }
+  .typing-dots div:nth-child(3) {
+    animation-delay: 0.4s;
+  }
+
+  @keyframes typingBounce {
+    0%, 80%, 100% {
+      transform: translateY(0);
+      opacity: 0.4;
+    }
+    40% {
+      transform: translateY(-6px);
+      opacity: 1;
+    }
+  }
+
+ 
+  .input-container {
+    display: flex;
+    padding: 15px 20px;
+    border-top: 1px solid #e6e8ec;
+    background: white;
+  }
+
+  .input-container input[type="text"] {
+    flex-grow: 1;
+    border: 1px solid #ddd;
+    border-radius: 25px;
+    padding: 12px 20px;
+    font-size: 16px;
+    outline: none;
+    transition: border-color 0.3s;
+  }
+  .input-container input[type="text"]:focus {
+    border-color: #4a90e2;
+    box-shadow: 0 0 8px rgba(74,144,226,0.5);
+  }
+
+  .input-container button {
+    background: #4a90e2;
+    border: none;
+    padding: 0 22px;
+    margin-left: 12px;
+    border-radius: 25px;
+    color: white;
+    font-weight: 700;
+    font-size: 16px;
+    cursor: pointer;
+    box-shadow: 0 5px 15px rgba(74,144,226,0.4);
+    transition: background 0.3s;
+  }
+  .input-container button:disabled {
+    background: #a0c1f7;
+    cursor: default;
+    box-shadow: none;
+  }
+  .input-container button:hover:not(:disabled) {
+    background: #2a66cc;
+  }
+
+  
+  .overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.35);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+    z-index: 2000;
+  }
+  .overlay.active {
+    display: flex;
+  }
+
+  
+  .profile-modal {
+    background: white;
+    border-radius: 15px;
+    width: 320px;
+    max-height: 90vh;
+    overflow-y: auto;
+    padding: 28px 28px 24px 28px;
+    box-shadow: 0 16px 40px rgba(0,0,0,0.25);
+    user-select: none;
+  }
+
+  .profile-modal h2 {
+    font-size: 22px;
+    font-weight: 700;
+    margin-bottom: 24px;
+    color: #23395d;
+  }
+
+  .profile-modal label {
+    font-weight: 600;
+    font-size: 14px;
+    color: #44566c;
+    margin-bottom: 6px;
+    display: block;
+  }
+
+  .profile-modal input[type="text"],
+  .profile-modal select {
+    width: 100%;
+    padding: 10px 14px;
+    margin-bottom: 20px;
+    font-size: 15px;
+    border-radius: 8px;
+    border: 1px solid #d3d7df;
+    color: #44566c;
+    font-weight: 500;
+    transition: border-color 0.3s;
+  }
+  .profile-modal input[type="text"]:focus,
+  .profile-modal select:focus {
+    outline: none;
+    border-color: #4a90e2;
+    box-shadow: 0 0 8px rgba(74,144,226,0.5);
+  }
+
+  
+  #keywords-container {
+    margin-bottom: 20px;
+  }
+  #keywords-container h3 {
+    color: #23395d;
+    font-weight: 700;
+    margin-bottom: 14px;
+    font-size: 18px;
+  }
+  #keywords-container p {
+    color: #8a95a6;
+    font-size: 14px;
+    margin-bottom: 10px;
+  }
+
+  .keyword-item {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 15px;
+    background: #f0f4fc;
+    border-radius: 10px;
+    padding: 12px 16px 12px 16px;
+    box-shadow: inset 0 1px 4px rgba(74,144,226,0.15);
+  }
+  .keyword-row {
+    display: flex;
+    gap: 12px;
+  }
+  .keyword-row input[type="text"] {
+    flex-grow: 1;
+    border: 1px solid #c4d1ec;
+    border-radius: 8px;
+    padding: 8px 12px;
+    font-size: 14px;
+    color: #2f3e6d;
+  }
+  .keyword-row input[type="text"]:focus {
+    border-color: #4a90e2;
+    box-shadow: 0 0 6px rgba(74,144,226,0.35);
+  }
+
+  .delete-keyword-btn {
+    align-self: flex-end;
+    background: #ea5656;
+    border: none;
+    color: white;
+    font-size: 12px;
+    font-weight: 700;
+    padding: 5px 11px;
+    margin-top: 8px;
+    border-radius: 15px;
+    cursor: pointer;
+    transition: background 0.3s;
+  }
+  .delete-keyword-btn:hover {
+    background: #ba4646;
+  }
+
+  .profile-modal button#add-keyword-btn {
+    background: #4a90e2;
+    color: white;
+    font-weight: 700;
+    padding: 10px 14px;
+    border-radius: 12px;
+    border: none;
+    cursor: pointer;
+    width: 100%;
+    font-size: 16px;
+    box-shadow: 0 8px 18px rgba(74,144,226,0.35);
+    transition: background 0.3s;
+  }
+  .profile-modal button#add-keyword-btn:hover {
+    background: #2A66CC;
+  }
+
+  .profile-modal button#close-profile-btn {
+    background: #e3e7f1;
+    color: #44566c;
+    font-weight: 600;
+    padding: 10px 16px;
+    border-radius: 15px;
+    border: none;
+    cursor: pointer;
+    width: 100%;
+    font-size: 16px;
+    transition: background 0.3s;
+    margin-top: 12px;
+  }
+  .profile-modal button#close-profile-btn:hover {
+    background: #c2ccdf;
+  }
+
+  
+  ::-webkit-scrollbar {
+    width: 6px;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: #c0c5d6;
+    border-radius: 3px;
+  }
+  ::-webkit-scrollbar-track {
+    background: #f0f3f8;
+  }
+
+  
+  .sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0,0,0,0);
+    border: 0;
+  }
+</style>
+</head>
+<body>
+<div id="app" role="main" aria-label="Professional Chat App">
+
+ 
+  <aside class="sidebar" aria-label="Sidebar with profile and friend">
+    <div id="user-avatar" class="profile-avatar" tabindex="0" role="button" aria-pressed="false" aria-label="Open profile settings"></div>
+    <div id="friend-indicator" class="friend-name" aria-label="Friend online status">
+     
+    </div>
+  </aside>
+
+ 
+  <section class="chat-container" aria-label="Chat area">
+
+    <header class="chat-header" aria-live="polite" aria-atomic="true" aria-relevant="additions" role="region">
+      <span id="friend-name-header">Friend</span>
+      <span class="online-indicator" id="friend-online-indicator" title="Friend is online" aria-label="Friend online status"></span>
+    </header>
+
+    <main id="messages" class="messages" role="log" aria-live="polite" aria-relevant="additions" tabindex="0">
+      
+    </main>
+
+    <div id="typing-indicator" class="typing-indicator" aria-live="polite" aria-atomic="true" style="display:none;">
+      <div class="typing-dots" aria-hidden="true">
+        <div></div><div></div><div></div>
+      </div>
+      <span class="sr-only" id="typing-text">Friend is typing</span>
+    </div>
+
+    <div class="input-container" aria-label="Message input area">
+      <input type="text" id="message-input" aria-label="Type your message" autocomplete="off" placeholder="Write a message..." />
+      <button id="send-button" aria-label="Send message" disabled>Send</button>
+    </div>
+  </section>
+</div>
+
+
+<div id="profile-overlay" class="overlay" role="dialog" aria-modal="true" aria-labelledby="profile-title" aria-hidden="true" tabindex="-1">
+  <section class="profile-modal" role="document">
+    <h2 id="profile-title">Profile Settings</h2>
+
+    <form id="profile-form" novalidate>
+
+      <label for="your-name-input">Your Name</label>
+      <input type="text" id="your-name-input" name="yourName" maxlength="30" placeholder="Your display name" />
+
+      <label for="friend-name-input">Friend Name</label>
+      <input type="text" id="friend-name-input" name="friendName" maxlength="30" placeholder="Friend's name" />
+
+      <label for="theme-select">Theme</label>
+      <select id="theme-select" aria-label="Select theme">
+        <option value="light">Light</option>
+        <option value="dark">Dark</option>
+      </select>
+
+      <label for="bg-upload">Background Image (Upload your own)</label>
+      <input type="file" id="bg-upload" accept="image/*" aria-label="Upload background image" />
+
+      <button type="button" id="clear-bg-btn" style="margin-bottom:20px;">Clear Background</button>
+
+      <div id="keywords-container" aria-live="polite" aria-relevant="additions removals" aria-label="Keyword triggers and responses">
+        <h3>Keywords and Responses</h3>
+      </div>
+
+      <button type="button" id="add-keyword-btn">+ Add Keyword</button>
+
+      <button type="button" id="close-profile-btn" style="margin-top:20px;">Close</button>
+    </form>
+  </section>
+</div>
+
+<script>
+  (function(){
+    
+    const userAvatar = document.getElementById('user-avatar');
+    const profileOverlay = document.getElementById('profile-overlay');
+    const profileForm = document.getElementById('profile-form');
+    const yourNameInput = document.getElementById('your-name-input');
+    const friendNameInput = document.getElementById('friend-name-input');
+    const themeSelect = document.getElementById('theme-select');
+    const addKeywordBtn = document.getElementById('add-keyword-btn');
+    const keywordsContainer = document.getElementById('keywords-container');
+    const closeProfileBtn = document.getElementById('close-profile-btn');
+    const bgUploadInput = document.getElementById('bg-upload');
+    const clearBgBtn = document.getElementById('clear-bg-btn');
+
+    const friendIndicator = document.getElementById('friend-indicator');
+    const friendNameHeader = document.getElementById('friend-name-header');
+    const friendOnlineIndicator = document.getElementById('friend-online-indicator');
+
+    const messagesEl = document.getElementById('messages');
+    const messageInput = document.getElementById('message-input');
+    const sendButton = document.getElementById('send-button');
+    const typingIndicator = document.getElementById('typing-indicator');
+    const typingText = document.getElementById('typing-text');
+
+   
+    const STORAGE_KEY = 'prochat_app_data';
+
+    
+    let data = {
+      yourName: 'You',
+      friendName: 'Friend',
+      theme: 'light',
+      keywords: [],
+      messages: [],
+      friendOnline: true,
+      backgroundImage: null // base64 or data url string
+    };
+
+    
+    function loadData(){
+      const saved = localStorage.getItem(STORAGE_KEY);
+      if(saved){
+        try{
+          const parsed = JSON.parse(saved);
+          if(parsed.yourName) data.yourName = parsed.yourName;
+          if(parsed.friendName) data.friendName = parsed.friendName;
+          if(parsed.theme) data.theme = parsed.theme;
+          if(Array.isArray(parsed.keywords)) data.keywords = parsed.keywords;
+          if(Array.isArray(parsed.messages)) data.messages = parsed.messages;
+          if(typeof parsed.friendOnline === 'boolean') data.friendOnline = parsed.friendOnline;
+          if(parsed.backgroundImage) data.backgroundImage = parsed.backgroundImage;
+        }catch(e){
+          console.warn('Error parsing data', e);
+        }
+      }
+    }
+
+    // ---- Save Data ----
+    function saveData(){
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+    }
+
+    
+    function applyTheme(theme){
+      if(theme === 'dark'){
+        document.body.style.backgroundColor = '#1e1e2f';
+        document.body.style.color = '#e1e1e6';
+        document.getElementById('app').style.backgroundColor = data.backgroundImage ? 'transparent' : '#2a2a3d';
+        friendNameHeader.style.color = '#ccc';
+        friendIndicator.style.color = '#ccc';
+      } else {
+        document.body.style.backgroundColor = '#f5f7fa';
+        document.body.style.color = '#333';
+        document.getElementById('app').style.backgroundColor = data.backgroundImage ? 'transparent' : 'white';
+        friendNameHeader.style.color = '#555';
+        friendIndicator.style.color = '#555';
+      }
+    }
+
+    // Apply background imag
+    function applyBackgroundImage(){
+      const app = document.getElementById('app');
+      if(data.backgroundImage){
+        app.style.backgroundImage = `url(${data.backgroundImage})`;
+      } else {
+        app.style.backgroundImage = 'none';
+      }
+      applyTheme(data.theme);
+    }
+
+    
+    function updateUserAvatar(){
+      let initials = data.yourName.trim().split(/\s+/).map(n => n[0].toUpperCase()).slice(0,2).join('');
+      userAvatar.textContent = initials || '?';
+      userAvatar.setAttribute('aria-label', data.yourName + ' - Open profile settings');
+    }
+
+    
+    function updateFriendDisplay(){
+      friendNameHeader.textContent = data.friendName;
+      friendIndicator.textContent = data.friendName;
+     
+      typingText.textContent = data.friendName + ' is typing...';
+
+      if(data.friendOnline){
+        friendOnlineIndicator.style.display = 'inline-block';
+        if (!friendIndicator.querySelector('.friend-status-dot')){
+          const dot = document.createElement('span');
+          dot.className = 'friend-status-dot';
+          friendIndicator.appendChild(dot);
+        }
+      } else {
+        friendOnlineIndicator.style.display = 'none';
+        const dot = friendIndicator.querySelector('.friend-status-dot');
+        if(dot) friendIndicator.removeChild(dot);
+      }
+    }
+
+   
+    function escapeHtml(text){
+      return text.replace(/[&<>"']/g, m => {
+        switch(m){
+          case '&': return '&amp;';
+          case '<': return '&lt;';
+          case '>': return '&gt;';
+          case '"': return '&quot;';
+          case "'": return '&#39;';
+          default: return m;
+        }
+      });
+    }
+
+    // ---- Render messages ----
+    function renderMessages(){
+      messagesEl.innerHTML = '';
+      for(let msg of data.messages){
+        const div = document.createElement('div');
+        div.className = 'message ' + (msg.sender === 'user' ? 'user' : 'bot');
+        div.textContent = msg.text;
+        messagesEl.appendChild(div);
+      }
+      messagesEl.scrollTop = messagesEl.scrollHeight;
+    }
+
+    // ---- Keyword Row creation ----
+    function createKeywordRow(keywordObj, idx){
+      const container = document.createElement('div');
+      container.className = 'keyword-item';
+      container.dataset.index = idx;
+
+      const row = document.createElement('div');
+      row.className = 'keyword-row';
+
+      
+      const keywordInput = document.createElement('input');
+      keywordInput.type = 'text';
+      keywordInput.placeholder = 'Keyword';
+      keywordInput.value = keywordObj.keyword || '';
+      keywordInput.maxLength = 30;
+      keywordInput.setAttribute('aria-label', `Keyword ${idx + 1}`);
+
+      
+      const answerInput = document.createElement('input');
+      answerInput.type = 'text';
+      answerInput.placeholder = 'Answer';
+      answerInput.value = keywordObj.answer || '';
+      answerInput.maxLength = 100;
+      answerInput.setAttribute('aria-label', `Answer for keyword ${idx + 1}`);
+
+      
+      const deleteBtn = document.createElement('button');
+      deleteBtn.type = 'button';
+      deleteBtn.className = 'delete-keyword-btn';
+      deleteBtn.textContent = 'Delete';
+      deleteBtn.title = 'Delete this keyword';
+
+      deleteBtn.addEventListener('click', () => {
+        data.keywords.splice(idx,1);
+        saveData();
+        renderKeywords();
+      });
+
+      // Update handlers
+      function updateData(){
+        const i = Number(container.dataset.index);
+        if(data.keywords[i]){
+          data.keywords[i].keyword = keywordInput.value.trim();
+          data.keywords[i].answer = answerInput.value.trim();
+          saveData();
+        }
+      }
+      keywordInput.addEventListener('input', updateData);
+      answerInput.addEventListener('input', updateData);
+
+      row.appendChild(keywordInput);
+      row.appendChild(answerInput);
+      container.appendChild(row);
+      container.appendChild(deleteBtn);
+
+      return container;
+    }
+
+    
+    function renderKeywords(){
+      keywordsContainer.innerHTML = '<h3>Keywords and Responses</h3>';
+      if(data.keywords.length === 0){
+        const p = document.createElement('p');
+        p.textContent = 'No keywords set. Click "Add Keyword" to add some.';
+        p.style.color = '#888';
+        keywordsContainer.appendChild(p);
+      } else {
+        data.keywords.forEach((kw,i) => {
+          const row = createKeywordRow(kw,i);
+          keywordsContainer.appendChild(row);
+        });
+      }
+    }
+
+    // ---- Keyword trigger detection ----
+    function getKeywordResponse(message){
+      const msgLower = message.toLowerCase();
+      for(let kw of data.keywords){
+        if(kw.keyword && msgLower.includes(kw.keyword.toLowerCase())){
+          return kw.answer || '';
+        }
+      }
+      return null;
+    }
+
+    
+    let typingTimeout = null;
+    let typingVisibleTimeout = null;
+
+    function showTyping(){
+      typingIndicator.style.display = 'flex';
+    }
+    function hideTyping(){
+      typingIndicator.style.display = 'none';
+    }
+
+    
+    sendButton.addEventListener('click', sendMessage);
+    messageInput.addEventListener('keydown', e => {
+      if(e.key === 'Enter' && !sendButton.disabled){
+        e.preventDefault();
+        sendMessage();
+      }
+    });
+
+    function sendMessage(){
+      const msg = messageInput.value.trim();
+      if(msg.length === 0) return;
+      
+      data.messages.push({sender:'user', text: msg});
+      saveData();
+      renderMessages();
+
+      
+      messageInput.value = '';
+      sendButton.disabled = true;
+      messageInput.focus();
+
+      
+      const response = getKeywordResponse(msg);
+      if(response){
+        
+        const typingDelay = Math.floor(Math.random() * (20000-3000+1)) + 3000;
+
+        
+        if(typingTimeout) clearTimeout(typingTimeout);
+        if(typingVisibleTimeout) clearTimeout(typingVisibleTimeout);
+
+        typingVisibleTimeout = setTimeout(() => {
+          showTyping();
+        }, 3000);
+
+        typingTimeout = setTimeout(() => {
+          hideTyping();
+          data.messages.push({sender:'bot', text: response});
+          saveData();
+          renderMessages();
+        }, typingDelay);
+      } else {
+        hideTyping();
+      }
+    }
+
+    
+    messageInput.addEventListener('input', () => {
+      sendButton.disabled = messageInput.value.trim().length === 0;
+    });
+
+    
+    function openProfile(){
+      profileOverlay.classList.add('active');
+      profileOverlay.setAttribute('aria-hidden', 'false');
+      yourNameInput.value = data.yourName;
+      friendNameInput.value = data.friendName;
+      themeSelect.value = data.theme || 'light';
+      renderKeywords();
+      yourNameInput.focus();
+      userAvatar.setAttribute('aria-pressed', 'true');
+    }
+
+    function closeProfile(){
+      profileOverlay.classList.remove('active');
+      profileOverlay.setAttribute('aria-hidden', 'true');
+      userAvatar.setAttribute('aria-pressed', 'false');
+      messageInput.focus();
+    }
+
+    userAvatar.addEventListener('click', () => {
+      if(profileOverlay.classList.contains('active')){
+        closeProfile();
+      } else {
+        openProfile();
+      }
+    });
+    userAvatar.addEventListener('keydown', e => {
+      if(e.key === 'Enter' || e.key === ' '){
+        e.preventDefault();
+        if(profileOverlay.classList.contains('active')){
+          closeProfile();
+        } else {
+          openProfile();
+        }
+      }
+    });
+
+    closeProfileBtn.addEventListener('click', closeProfile);
+
+    profileOverlay.addEventListener('click', e => {
+      if(e.target === profileOverlay){
+        closeProfile();
+      }
+    });
+
+    window.addEventListener('keydown', e => {
+      if(e.key === 'Escape' && profileOverlay.classList.contains('active')){
+        closeProfile();
+      }
+    });
+
+    
+    yourNameInput.addEventListener('input', () => {
+      data.yourName = yourNameInput.value.trim() || 'You';
+      saveData();
+      updateUserAvatar();
+    });
+    friendNameInput.addEventListener('input', () => {
+      data.friendName = friendNameInput.value.trim() || 'Friend';
+      saveData();
+      updateFriendDisplay();
+    });
+    themeSelect.addEventListener('change', () => {
+      data.theme = themeSelect.value;
+      saveData();
+      applyTheme(data.theme);
+    });
+
+    
+    addKeywordBtn.addEventListener('click', () => {
+      data.keywords.push({keyword:'', answer:''});
+      saveData();
+      renderKeywords();
+      setTimeout(() => {
+        const inputs = keywordsContainer.querySelectorAll('.keyword-item input[type=text]');
+        if(inputs.length) inputs[inputs.length - 2].focus(); // focus new keyword input
+      }, 50);
+    });
+
+    
+    clearBgBtn.addEventListener('click', () => {
+      data.backgroundImage = null;
+      saveData();
+      applyBackgroundImage();
+    });
+
+   
+    bgUploadInput.addEventListener('change', e => {
+      const file = e.target.files[0];
+      if(file && file.type.startsWith('image/')){
+        const reader = new FileReader();
+        reader.onload = function(evt){
+          data.backgroundImage = evt.target.result;
+          saveData();
+          applyBackgroundImage();
+        };
+        reader.readAsDataURL(file);
+      }
+      
+      bgUploadInput.value = '';
+    });
+
+    
+    profileOverlay.addEventListener('keydown', e => {
+      if(e.key !== 'Tab') return;
+      const focusable = profileOverlay.querySelectorAll('input, button, select, [tabindex]:not([tabindex="-1"])');
+      if(focusable.length === 0) return;
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+
+      if(e.shiftKey){
+        if(document.activeElement === first){
+          e.preventDefault();
+          last.focus();
+        }
+      } else {
+        if(document.activeElement === last){
+          e.preventDefault();
+          first.focus();
+        }
+      }
+    });
+
+    
+    loadData();
+    applyBackgroundImage();
+    applyTheme(data.theme);
+    updateUserAvatar();
+    updateFriendDisplay();
+    renderMessages();
+    hideTyping();
+
+  })();
+</script>
+
+</body>
+</html>
+
